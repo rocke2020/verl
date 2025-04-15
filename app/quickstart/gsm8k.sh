@@ -1,5 +1,6 @@
 set -eux
 export CUDA_VISIBLE_DEVICES=$1
+# export HYDRA_FULL_ERROR=1
 # 
 echo CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES > app/quickstart/gpu.log
 PYTHONUNBUFFERED=1 python3 -m verl.trainer.main_ppo \
