@@ -15,9 +15,9 @@ clip_ratio_low=0.2
 clip_ratio_high=0.28
 
 max_prompt_length=$((1024 * 2))
-max_response_length=$((1024 * 8))
+max_response_length=$((1024 * 4))
 enable_overlong_buffer=True
-overlong_buffer_len=$((1024 * 2))
+overlong_buffer_len=$((1024 * 1))
 overlong_penalty_factor=1.0
 
 loss_agg_mode="token-mean"
@@ -26,13 +26,13 @@ train_prompt_bsz=256
 n_resp_per_prompt=4
 train_prompt_mini_bsz=16
 
-export CUDA_VISIBLE_DEVICES=4,5,6,7
+export CUDA_VISIBLE_DEVICES=0,1
 # Ray
 # RAY_ADDRESS=${RAY_ADDRESS:-"http://localhost:8265"}
 # WORKING_DIR=${WORKING_DIR:-"${PWD}"}
 # RUNTIME_ENV=${RUNTIME_ENV:-"${WORKING_DIR}/verl/trainer/runtime_env.yaml"}
 NNODES=${NNODES:-1}
-NGPUS_PER_NODE=${NGPUS_PER_NODE:-4}
+NGPUS_PER_NODE=${NGPUS_PER_NODE:-2}
 # Paths
 RAY_DATA_HOME=/data/corpus/verl
 MODEL_PATH=/data/model/Qwen/Qwen2.5-Math-7B
@@ -48,17 +48,17 @@ val_top_p=0.7
 
 # Performance Related Parameter
 # In vllm, both sp_size and gen_tp should be divisible by the number of heads, which is 28 for Qwen2.5-7B
-sp_size=2
+sp_size=1
 use_dynamic_bsz=True
 actor_ppo_max_token_len=$(((max_prompt_length + max_response_length) * 1))
 infer_ppo_max_token_len=$(((max_prompt_length + max_response_length) * 1))
 offload=True
-gen_tp=2
+gen_tp=1
 fsdp_size=32
 
-export WANDB_API_KEY=$(cat .wandb_api_key)
-export WANDB_INIT_TIMEOUT=120
-wandb login
+# export WANDB_API_KEY=$(cat .wandb_api_key)
+# export WANDB_INIT_TIMEOUT=120
+# wandb login
 export VLLM_ALLOW_LONG_MAX_MODEL_LEN=1
 # remember to set VLLM_ALLOW_LONG_MAX_MODEL_LEN=1 for this model
 
@@ -89,6 +89,7 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.rollout.log_prob_max_token_len_per_gpu=${infer_ppo_max_token_len} \
     actor_rollout_ref.model.path="${MODEL_PATH}" \
     actor_rollout_ref.model.enable_gradient_checkpointing=True \
+    actor_rollout_ref.model.lora_rank=8 \
     actor_rollout_ref.actor.optim.lr=1e-6 \
     actor_rollout_ref.actor.optim.lr_warmup_steps=10 \
     actor_rollout_ref.actor.optim.weight_decay=0.1 \
@@ -116,12 +117,12 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.fsdp_config.fsdp_size=${fsdp_size} \
     reward_model.reward_manager=dapo \
     ray_init.num_cpus=96 \
-    +reward_model.reward_kwargs.overlong_buffer_cfnable=${enable_overlong_buffer} \
+    +reward_model.reward_kwargs.overlong_buffer_cfg.enable=${enable_overlong_buffer} \
     +reward_model.reward_kwargs.overlong_buffer_cfg.len=${overlong_buffer_len} \
     +reward_model.reward_kwargs.overlong_buffer_cfg.penalty_factor=${overlong_penalty_factor} \
     +reward_model.reward_kwargs.overlong_buffer_cfg.log=False \
     +reward_model.reward_kwargs.max_resp_len=${max_response_length} \
-    trainer.logger=['console','wandb'] \
+    trainer.logger=['console'] \
     trainer.project_name="${project_name}" \
     trainer.experiment_name="${exp_name}" \
     trainer.n_gpus_per_node="${NGPUS_PER_NODE}" \
@@ -129,7 +130,7 @@ python3 -m verl.trainer.main_ppo \
     trainer.val_before_train=True \
     trainer.test_freq=20 \
     trainer.save_freq=20 \
-    trainer.total_epochs=10 \
+    trainer.total_epochs=1 \
     trainer.total_training_steps=200 \
     trainer.default_local_dir="${CKPTS_DIR}" \
     trainer.resume_mode=auto \
