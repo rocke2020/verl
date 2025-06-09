@@ -26,13 +26,13 @@ train_prompt_bsz=256
 n_resp_per_prompt=4
 train_prompt_mini_bsz=16
 
-export CUDA_VISIBLE_DEVICES=2,3
+export CUDA_VISIBLE_DEVICES=0,1,2,3
 # Ray
 # RAY_ADDRESS=${RAY_ADDRESS:-"http://localhost:8265"}
 # WORKING_DIR=${WORKING_DIR:-"${PWD}"}
 # RUNTIME_ENV=${RUNTIME_ENV:-"${WORKING_DIR}/verl/trainer/runtime_env.yaml"}
 NNODES=${NNODES:-1}
-NGPUS_PER_NODE=${NGPUS_PER_NODE:-2}
+NGPUS_PER_NODE=${NGPUS_PER_NODE:-4}
 # Paths
 RAY_DATA_HOME=/data/corpus/verl
 MODEL_PATH=/data/model/Qwen/Qwen2.5-Math-7B
