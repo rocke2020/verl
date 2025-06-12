@@ -54,8 +54,8 @@ actor_ppo_max_token_len=$(((max_prompt_length + max_response_length) * 1))
 infer_ppo_max_token_len=$(((max_prompt_length + max_response_length) * 1))
 offload=True
 gen_tp=1
-fsdp_size=32
-
+fsdp_size=-1
+strategy=fsdp2
 # export WANDB_API_KEY=$(cat .wandb_api_key)
 # export WANDB_INIT_TIMEOUT=120
 # wandb login
@@ -81,6 +81,7 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.clip_ratio_c=10.0 \
     actor_rollout_ref.model.use_remove_padding=True \
     +actor_rollout_ref.model.override_config.max_position_embeddings=32768 \
+    actor_rollout_ref.model.use_fused_kernels=True \
     actor_rollout_ref.actor.use_dynamic_bsz=${use_dynamic_bsz} \
     actor_rollout_ref.ref.log_prob_use_dynamic_bsz=${use_dynamic_bsz} \
     actor_rollout_ref.rollout.log_prob_use_dynamic_bsz=${use_dynamic_bsz} \
@@ -94,8 +95,17 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.optim.lr_warmup_steps=10 \
     actor_rollout_ref.actor.optim.weight_decay=0.1 \
     actor_rollout_ref.actor.ppo_mini_batch_size=${train_prompt_mini_bsz} \
+    actor_rollout_ref.actor.strategy=${strategy} \
     actor_rollout_ref.actor.fsdp_config.param_offload=${offload} \
     actor_rollout_ref.actor.fsdp_config.optimizer_offload=${offload} \
+    actor_rollout_ref.actor.fsdp_config.offload_policy=${offload} \
+    actor_rollout_ref.ref.strategy=${strategy} \
+    actor_rollout_ref.ref.fsdp_config.param_offload=${offload} \
+    critic.strategy=${strategy} \
+    critic.model.fsdp_config.param_offload=${offload} \
+    critic.model.fsdp_config.optimizer_offload=${offload} \
+    critic.model.fsdp_config.offload_policy=${offload} \
+    reward_model.strategy=${strategy} \
     actor_rollout_ref.actor.entropy_coeff=0 \
     actor_rollout_ref.actor.grad_clip=1.0 \
     actor_rollout_ref.actor.loss_agg_mode=${loss_agg_mode} \
@@ -116,7 +126,7 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.ref.ulysses_sequence_parallel_size=${sp_size} \
     actor_rollout_ref.actor.fsdp_config.fsdp_size=${fsdp_size} \
     reward_model.reward_manager=dapo \
-    ray_init.num_cpus=96 \
+    ray_init.num_cpus=64 \
     +reward_model.reward_kwargs.overlong_buffer_cfg.enable=${enable_overlong_buffer} \
     +reward_model.reward_kwargs.overlong_buffer_cfg.len=${overlong_buffer_len} \
     +reward_model.reward_kwargs.overlong_buffer_cfg.penalty_factor=${overlong_penalty_factor} \

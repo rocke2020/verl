@@ -18,7 +18,7 @@ tensorflow/my_graph/*
 .idea/
 # C extensions
 *.so
-
+*.whl
 # Distribution / packaging
 .Python
 env/

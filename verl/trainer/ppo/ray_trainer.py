@@ -628,7 +628,9 @@ class RayPPOTrainer:
             # pad to be divisible by dp_size
             test_gen_batch_padded, pad_size = pad_dataproto_to_divisor(test_gen_batch, self.actor_rollout_wg.world_size)
             if not self.async_rollout_mode:
+                print(f'{len(test_gen_batch_padded) = }')
                 test_output_gen_batch_padded = self.actor_rollout_wg.generate_sequences(test_gen_batch_padded)
+                print(f'{len(test_output_gen_batch_padded) = }')
             else:
                 self.async_rollout_manager.wake_up()
                 test_output_gen_batch_padded = self.async_rollout_manager.generate_sequences(test_gen_batch_padded)
@@ -935,12 +937,13 @@ class RayPPOTrainer:
                 )
 
                 is_last_step = self.global_steps >= self.total_training_steps
-
                 with _timer("step", timing_raw):
                     # generate a batch
                     with _timer("gen", timing_raw):
                         if not self.async_rollout_mode:
+                            print(f'{len(gen_batch) = }')
                             gen_batch_output = self.actor_rollout_wg.generate_sequences(gen_batch)
+                            print(f'{len(gen_batch_output) = }')
                         else:
                             self.async_rollout_manager.wake_up()
                             gen_batch_output = self.async_rollout_manager.generate_sequences(gen_batch)
@@ -967,7 +970,7 @@ class RayPPOTrainer:
                     batch.non_tensor_batch["uid"] = np.array([str(uuid.uuid4()) for _ in range(len(batch.batch))], dtype=object)
                     # repeat to align with repeated responses in rollout
                     batch = batch.repeat(repeat_times=self.config.actor_rollout_ref.rollout.n, interleave=True)
-                    print(f'{len(batch) = } {len(gen_batch_output) = }')
+                    print(f'{len(batch) = }')
                     batch = batch.union(gen_batch_output)
 
                     batch.batch["response_mask"] = compute_response_mask(batch)
