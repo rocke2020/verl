@@ -136,6 +136,7 @@ class vLLMRollout(BaseRollout):
 
         lora_kwargs = kwargs.pop("lora_kwargs", {})
         self.lora_kwargs = lora_kwargs
+        print(f'{lora_kwargs = }')
         # copy it to avoid secretly modifying the engine config
         engine_kwargs = {} if "engine_kwargs" not in config or "vllm" not in config.engine_kwargs else OmegaConf.to_container(deepcopy(config.engine_kwargs.vllm))
         # For each vLLM engine parameter,
@@ -145,7 +146,7 @@ class vLLMRollout(BaseRollout):
         engine_kwargs = {key: val for key, val in engine_kwargs.items() if val is not None}
         if config.get("limit_images", None):  # support for multi-image data
             engine_kwargs["limit_mm_per_prompt"] = {"image": config.get("limit_images")}
-
+        print(f'{engine_kwargs = }\n{config = }')
         self.inference_engine = LLM(
             model=model_path,
             enable_sleep_mode=True,
@@ -253,7 +254,9 @@ class vLLMRollout(BaseRollout):
                 input_data["prompt_token_ids"] = input_data["prompt_token_ids"].tolist()
             elif not isinstance(input_data["prompt_token_ids"], list):
                 raise TypeError(f"prompt_token_ids must be a list or numpy array, got {type(input_data['prompt_token_ids'])}")
-
+        print(f'{len(prompts) = }, {prompts.meta_info = }')
+        # In training, prompts.meta_info = {'eos_token_id': 151643, 'pad_token_id': None}
+        # In validation, prompts.meta_info = {'eos_token_id': 151643, 'pad_token_id': None, 'do_sample': True, 'validate': True}
         do_sample = prompts.meta_info.get("do_sample", True)
         is_validate = prompts.meta_info.get("validate", False)
         if not do_sample:
@@ -282,8 +285,9 @@ class vLLMRollout(BaseRollout):
                 lora_requests = [LoRARequest(lora_name=f"{lora_int_id}", lora_int_id=lora_int_id, lora_path="/simon-stub-path")] * batch_size
 
         # users can customize different sampling_params at different run
-        print(f'vllm rollout spmd {self.sampling_params = }')
+        print(f'vllm rollout spmd {self.sampling_params = }, {do_sample = }, {kwargs = }')
         with self.update_sampling_params(**kwargs):
+            print(f'updated {self.sampling_params = }')
             outputs = self.inference_engine.generate(
                 prompts=vllm_inputs,  # because we have already convert it to prompt token id
                 sampling_params=self.sampling_params,
@@ -308,8 +312,9 @@ class vLLMRollout(BaseRollout):
             response = pad_2d_list_to_length(response, self.pad_token_id, max_length=self.config.response_length).to(idx.device)
             rollout_log_probs = pad_2d_list_to_length(rollout_log_probs, -1, max_length=self.config.response_length).to(idx.device)
             rollout_log_probs = rollout_log_probs.to(torch.float32)
-
+            print(f'update_sampling_params {len(response) = }')
             if self.sampling_params.n > 1 and do_sample:
+                print(f'before _repeat_interleave {len(idx) = }')
                 idx = _repeat_interleave(idx, self.sampling_params.n)
                 attention_mask = _repeat_interleave(attention_mask, self.sampling_params.n)
                 position_ids = _repeat_interleave(position_ids, self.sampling_params.n)
@@ -317,7 +322,8 @@ class vLLMRollout(BaseRollout):
                 # NOTE(linjunrong): for multi-turn https://github.com/volcengine/verl/pull/1037
                 if "tools_kwargs" in non_tensor_batch.keys():
                     non_tensor_batch["tools_kwargs"] = _repeat_interleave(non_tensor_batch["tools_kwargs"], self.sampling_params.n)
-
+                print(f'_repeat_interleave {len(idx) = }')
+            
             seq = torch.cat([idx, response], dim=-1)
 
         response_length = response.size(1)
