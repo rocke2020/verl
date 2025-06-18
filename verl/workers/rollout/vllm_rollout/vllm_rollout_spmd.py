@@ -47,6 +47,7 @@ from verl.third_party.vllm import vllm_version
 from verl.utils.debug import GPUMemoryLogger
 from verl.utils.torch_functional import get_response_mask, pad_2d_list_to_length
 from verl.workers.rollout.base import BaseRollout
+from verl.utils.debug.performance import _timer, log_print
 
 logger = logging.getLogger(__file__)
 logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
@@ -254,7 +255,7 @@ class vLLMRollout(BaseRollout):
                 input_data["prompt_token_ids"] = input_data["prompt_token_ids"].tolist()
             elif not isinstance(input_data["prompt_token_ids"], list):
                 raise TypeError(f"prompt_token_ids must be a list or numpy array, got {type(input_data['prompt_token_ids'])}")
-        print(f'{len(prompts) = }, {prompts.meta_info = }')
+        print(f'{len(prompts) = }, {prompts.meta_info = }', flush=True)
         # In training, prompts.meta_info = {'eos_token_id': 151643, 'pad_token_id': None}
         # In validation, prompts.meta_info = {'eos_token_id': 151643, 'pad_token_id': None, 'do_sample': True, 'validate': True}
         do_sample = prompts.meta_info.get("do_sample", True)
@@ -287,14 +288,14 @@ class vLLMRollout(BaseRollout):
         # users can customize different sampling_params at different run
         print(f'vllm rollout spmd {self.sampling_params = }, {do_sample = }, {kwargs = }')
         with self.update_sampling_params(**kwargs):
-            print(f'updated {self.sampling_params = }')
+            print(f'updated {self.sampling_params = } {len(vllm_inputs) = }')
             outputs = self.inference_engine.generate(
                 prompts=vllm_inputs,  # because we have already convert it to prompt token id
                 sampling_params=self.sampling_params,
                 lora_request=lora_requests,
                 use_tqdm=False,
             )
-
+            print(f'vllm rollout spmd {len(outputs) = }')
             # TODO(sgm): disable logprob when recompute_log_prob is enable
             # if n = 1: (bs, response_length) ; if n > 1: (bs * n, response_length)
 

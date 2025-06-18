@@ -632,7 +632,7 @@ class ActorRolloutRefWorker(Worker):
             prompts = self.rollout_sharding_manager.preprocess_data(prompts)
             with _timer("generate_sequences", timing_generate):
                 output = self.rollout.generate_sequences(prompts=prompts)
-
+                print(f'fsdp workers generate_sequences {len(output) = }')
             log_gpu_memory_usage("After rollout generation", logger=logger)
 
             output = self.rollout_sharding_manager.postprocess_data(output)

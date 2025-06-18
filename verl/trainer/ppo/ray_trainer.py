@@ -51,7 +51,7 @@ from verl.trainer.ppo.metric_utils import (
 )
 from verl.trainer.ppo.reward import compute_reward, compute_reward_async
 from verl.utils.checkpoint.checkpoint_manager import BaseCheckpointManager, find_latest_ckpt_path
-from verl.utils.debug.performance import _timer
+from verl.utils.debug.performance import _timer, log_print
 from verl.utils.metric import (
     reduce_metrics,
 )
@@ -506,7 +506,6 @@ class RayPPOTrainer:
             drop_last=False,
             collate_fn=collate_fn,
         )
-
         assert len(self.train_dataloader) >= 1, "Train dataloader is empty!"
         assert len(self.val_dataloader) >= 1, "Validation dataloader is empty!"
 
@@ -589,7 +588,7 @@ class RayPPOTrainer:
 
         for test_data in self.val_dataloader:
             test_batch = DataProto.from_single_dict(test_data)
-
+            log_print(test_batch)
             # repeat test batch
             test_batch = test_batch.repeat(repeat_times=self.config.actor_rollout_ref.rollout.val_kwargs.n, interleave=True)
 
