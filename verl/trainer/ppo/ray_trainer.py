@@ -999,7 +999,7 @@ class RayPPOTrainer:
                     with _timer("old_log_prob", timing_raw):
                         log_print(f"before old log probs for {batch.batch.keys() = } ")
                         old_log_prob = self.actor_rollout_wg.compute_log_prob(batch)
-                        log_print(f"before old log probs for {old_log_prob.batch.keys() = } ")
+                        log_print(f"after old log probs for {old_log_prob.batch.keys() = } ")
                         entropys = old_log_prob.batch["entropys"]
                         response_masks = batch.batch["response_mask"]
                         loss_agg_mode = self.config.actor_rollout_ref.actor.loss_agg_mode
@@ -1053,6 +1053,7 @@ class RayPPOTrainer:
                         reward_extra_infos_dict: dict[str, list]
                         if self.config.reward_model.launch_reward_fn_async:
                             reward_tensor, reward_extra_infos_dict = ray.get(future_reward)
+                        log_print(f"reward_tensor shape: {reward_tensor.shape}, reward_tensor\n{reward_tensor}")
                         batch.batch["token_level_scores"] = reward_tensor
 
                         if reward_extra_infos_dict:

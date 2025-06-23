@@ -26,7 +26,7 @@ train_prompt_bsz=256
 n_resp_per_prompt=4
 train_prompt_mini_bsz=16
 
-export CUDA_VISIBLE_DEVICES=0,1,6,7
+export CUDA_VISIBLE_DEVICES=2,3,4,5
 # Ray
 # RAY_ADDRESS=${RAY_ADDRESS:-"http://localhost:8265"}
 # WORKING_DIR=${WORKING_DIR:-"${PWD}"}
