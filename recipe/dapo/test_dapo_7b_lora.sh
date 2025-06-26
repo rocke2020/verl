@@ -24,7 +24,7 @@ loss_agg_mode="token-mean"
 
 train_prompt_bsz=256
 n_resp_per_prompt=4
-train_prompt_mini_bsz=16
+train_prompt_mini_bsz=32
 
 export CUDA_VISIBLE_DEVICES=2,3,4,5
 # Ray
@@ -48,7 +48,7 @@ val_top_p=0.7
 
 # Performance Related Parameter
 # In vllm, both sp_size and gen_tp should be divisible by the number of heads, which is 28 for Qwen2.5-7B
-sp_size=1
+sp_size=4
 use_dynamic_bsz=True
 actor_ppo_max_token_len=$(((max_prompt_length + max_response_length) * 1))
 infer_ppo_max_token_len=$(((max_prompt_length + max_response_length) * 1))
