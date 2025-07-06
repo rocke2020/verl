@@ -103,7 +103,7 @@ class DataParallelPPOActor(BasePPOActor):
             if self.use_remove_padding:
                 input_ids_rmpad, indices, *_ = unpad_input(input_ids.unsqueeze(-1), attention_mask)  # input_ids_rmpad (total_nnz, ...)
                 input_ids_rmpad = input_ids_rmpad.transpose(0, 1)  # (1, total_nnz)
-
+                print(f'use_remove_padding {input_ids_rmpad.shape = }')
                 # unpad the position_ids to align the rotary
                 if position_ids.dim() == 3:
                     position_ids_rmpad = index_first_axis(rearrange(position_ids, "c b s ... -> (b s) c ..."), indices).transpose(0, 1).unsqueeze(1)  # (3, bsz, seqlen) -> (3, 1, bsz * seqlen)
@@ -142,7 +142,7 @@ class DataParallelPPOActor(BasePPOActor):
                 if self.use_fused_kernels:
                     extra_args["temperature"] = temperature
                     extra_args["return_dict"] = True
-
+                print(f'before actor_module {input_ids_rmpad.shape = }, {position_ids_rmpad.shape = }')
                 output = self.actor_module(
                     input_ids=input_ids_rmpad,
                     attention_mask=None,
@@ -398,7 +398,7 @@ class DataParallelPPOActor(BasePPOActor):
                     if entropy_coeff != 0:
                         calculate_entropy = True
                     entropy, log_prob = self._forward_micro_batch(micro_batch=data, temperature=temperature, calculate_entropy=calculate_entropy)
-
+                    print(f'{old_log_prob.batch.device = }, {log_prob.device = }')
                     pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower = compute_policy_loss(
                         old_log_prob=old_log_prob,
                         log_prob=log_prob,
