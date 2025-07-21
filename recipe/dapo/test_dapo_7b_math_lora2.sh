@@ -56,6 +56,10 @@ gen_tp=4
 fsdp_size=-1
 strategy=fsdp2
 
+if [ ! -d "recipe/dapo/logs/lora/" ]; then
+    mkdir -p recipe/dapo/logs/lora
+fi
+export VLLM_ALLOW_LONG_MAX_MODEL_LEN=1
 # remember to set VLLM_ALLOW_LONG_MAX_MODEL_LEN=1 for this model
 
 python3 -m verl.trainer.main_ppo \
