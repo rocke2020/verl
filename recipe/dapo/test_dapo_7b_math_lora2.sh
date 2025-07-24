@@ -54,7 +54,7 @@ infer_ppo_max_token_len=$(((max_prompt_length + max_response_length) * 3))
 offload=True
 gen_tp=4
 fsdp_size=-1
-strategy=fsdp2
+strategy=fsdp
 
 if [ ! -d "recipe/dapo/logs/lora/" ]; then
     mkdir -p recipe/dapo/logs/lora

@@ -17,7 +17,7 @@ nnodes=1
 ngpu_per_node=8
 total_procs=$(( nproc_per_gpu * nnodes * ngpu_per_node ))
 mini_batch_size=8
-strategy=fsdp2
+strategy=fsdp
 
 python3 -m verl.trainer.main_ppo \
     algorithm.adv_estimator=grpo \
