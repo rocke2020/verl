@@ -54,7 +54,6 @@ from verl import DataProto
 from verl.utils.profiler import GPUMemoryLogger
 from verl.utils.torch_functional import get_response_mask, pad_2d_list_to_length
 from verl.workers.rollout.base import BaseRollout
-from verl.utils.debug.performance import _timer, log_print
 
 logger = logging.getLogger(__file__)
 logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
@@ -149,7 +148,6 @@ class vLLMRollout(BaseRollout):
 
         lora_kwargs = kwargs.pop("lora_kwargs", {})
         self.lora_kwargs = lora_kwargs
-        print(f'{lora_kwargs = }')
         # copy it to avoid secretly modifying the engine config
         engine_kwargs = (
             {}
@@ -163,7 +161,7 @@ class vLLMRollout(BaseRollout):
         engine_kwargs = {key: val for key, val in engine_kwargs.items() if val is not None}
         if config.get("limit_images", None):  # support for multi-image data
             engine_kwargs["limit_mm_per_prompt"] = {"image": config.get("limit_images")}
-        print(f'{engine_kwargs = }\n{config = }')
+        print(f'{model_path = }\n{lora_kwargs = }\n{engine_kwargs = }\n{config = }')
         self.inference_engine = LLM(
             model=model_path,
             enable_sleep_mode=config.free_cache_engine,
