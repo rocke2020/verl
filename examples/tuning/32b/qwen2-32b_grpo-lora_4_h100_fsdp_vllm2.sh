@@ -12,7 +12,7 @@ set -x
 export VLLM_ATTENTION_BACKEND=XFORMERS
 # If you are using vllm<=0.6.3, you might need to set the following environment variable to avoid bugs:
 # export VLLM_ATTENTION_BACKEND=XFORMERS
-nproc_per_gpu=2 # 32√ → 64× → 48× → 40√ → 44√ → 46× → 45×
+nproc_per_gpu=6 # 32√ → 64× → 48× → 40√ → 44√ → 46× → 45×
 nnodes=1
 ngpu_per_node=8
 total_procs=$(( nproc_per_gpu * nnodes * ngpu_per_node ))
@@ -39,7 +39,6 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.optim.lr=3e-5 \
     actor_rollout_ref.model.use_remove_padding=True \
     actor_rollout_ref.actor.ppo_mini_batch_size=${mini_batch_size} \
-    actor_rollout_ref.actor.ppo_micro_batch_size=${mini_batch_size} \
     actor_rollout_ref.actor.use_kl_loss=True \
     actor_rollout_ref.actor.kl_loss_coef=0.001 \
     actor_rollout_ref.actor.kl_loss_type=low_var_kl \
@@ -49,6 +48,7 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.fsdp_config.offload_policy=True \
     actor_rollout_ref.actor.fsdp_config.param_offload=True \
     actor_rollout_ref.actor.fsdp_config.optimizer_offload=True \
+    actor_rollout_ref.actor.use_dynamic_bsz=True \
     actor_rollout_ref.rollout.log_prob_micro_batch_size=${mini_batch_size} \
     actor_rollout_ref.rollout.tensor_model_parallel_size=8 \
     actor_rollout_ref.rollout.name=vllm \
