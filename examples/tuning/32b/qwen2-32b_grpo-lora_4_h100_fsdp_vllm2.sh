@@ -38,8 +38,8 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.optim.lr=3e-5 \
     actor_rollout_ref.model.use_remove_padding=True \
     actor_rollout_ref.actor.ppo_mini_batch_size=${mini_batch_size} \
-    actor_rollout_ref.actor.use_kl_loss=True \
-    actor_rollout_ref.actor.kl_loss_coef=0.001 \
+    actor_rollout_ref.actor.use_kl_loss=False \
+    actor_rollout_ref.actor.kl_loss_coef=0.000 \
     actor_rollout_ref.actor.kl_loss_type=low_var_kl \
     actor_rollout_ref.actor.strategy=$strategy \
     actor_rollout_ref.actor.fsdp_config.fsdp_size=-1 \
@@ -62,8 +62,8 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.ref.log_prob_micro_batch_size=${mini_batch_size} \
     actor_rollout_ref.ref.fsdp_config.param_offload=True \
     actor_rollout_ref.actor.ulysses_sequence_parallel_size=2 \
-    actor_rollout_ref.actor.entropy_coeff=0.001 \
-    algorithm.kl_ctrl.kl_coef=0.001 \
+    actor_rollout_ref.actor.entropy_coeff=0.000 \
+    algorithm.kl_ctrl.kl_coef=0.000 \
     algorithm.use_kl_in_reward=False \
     trainer.critic_warmup=0 \
     trainer.logger=['console'] \
